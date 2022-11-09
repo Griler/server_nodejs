@@ -77,30 +77,38 @@ exports.getFlatCategories = (req, res) => {
     })
 }
 exports.getCategoriesParent = (req, res) => {
-    Category.find({ parentId: null } ).exec((error, categories) => {
+    Category.find({ parentId: null } ).exec((error,categories) => {
         if (error) {
             return res.status(400).json({ error })
         } else {
-            return res.status(200).json({ categories });
+            return res.status(200).json({categories});
+        }
+    })
+}
+exports.getCategoriesChild = (req, res) => {
+    Category.find(({ parentId: { $ne: null } }) ).exec((error,categoriesChild) => {
+        if (error) {
+            return res.status(400).json({ error })
+        } else {
+            return res.status(200).json({categoriesChild});
         }
     })
 }
 
 
 exports.deleteCategories = async (req, res) => {
-    const { ids } = req.body.payload;
-    const deletedCategories = [];
-    for (let i = 0; i < ids.length; i++) {
-        const deleteCategory = await Category.findOneAndUpdate({
-            _id: ids[i]._id
-        }, { isDisabled: true });
-        deletedCategories.push(deleteCategory);
-    }
+    const { ids } = req.body;
+    try {
+        for (let i = 0; i < ids.length; i++) {
+            Category.deleteOne({
+                _id: ids[i]._id,
+            },{ isDisabled: true });
+        }
+        return  res.status(200).json({Message : " Xoá thành công "});
 
-    if (deletedCategories.length == ids.length) {
-        res.status(201).json({ message: "Categories removed" });
-    } else {
-        res.status(400).json({ message: "Something went wrong" });
+    }catch (e) {
+        return  res.status(400).json({Message : e});
+
     }
 };
 

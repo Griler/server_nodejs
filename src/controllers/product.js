@@ -14,7 +14,6 @@ exports.addProduct = (req, res) => {
     }
     const product = new Product({
         name: name,
-        slug: `${slugify(name)}-${shortid.generate()}`,
         price,
         description,
         productPictures,
@@ -29,40 +28,6 @@ exports.addProduct = (req, res) => {
         } else {
             res.status(400).json({ error: "something went wrong" })
         }
-    })
-}
-
-exports.addProducts = async (req, res) => {
-    const items = req.body.items
-    var count = 0;
-    for (let i = 0; i < items.length; i++) {
-        const { name, price, description, category, discountPercent, variants, productPictures } = items[i];
-        const product = new Product({
-            name: name,
-            slug: `${slugify(name)}-${shortid.generate()}`,
-            price,
-            description,
-            productPictures,
-            variants,
-            discountPercent,
-            category
-        })
-        try{
-            await product.save()
-            count ++;
-        }catch(error) {
-
-        }
-    }
-    res.status(200).json({ count })
-}
-
-exports.updateDiscountPercentByCategory = (req, res) => {
-    const { categoryId, discountPercent } = req.body
-    Product.updateMany({ category: categoryId }, { $set: { discountPercent } }
-    ).exec((error, result) => {
-        if (error) return res.status(400).json({ error })
-        res.status(202).json({ result })
     })
 }
 
@@ -98,57 +63,6 @@ exports.updateVariants = (req, res) => {
             })
 }
 
-
-exports.getProductsByCategorySlug = (req, res) => {
-    const { slug } = req.params
-    if (slug === "all") {
-        Product.find({ isDisabled: { $ne: true } })
-            .populate({ path: "category", select: "_id name categoryImage" })
-            .limit(100)
-            .exec((error, products) => {
-                if (error) return res.status(400).json({ error })
-                if (products) {
-                    res.status(200).json({ products: products, title: "Tất cả sản phẩm" })
-                } else {
-                    res.status(400).json({ error: "something went wrong" })
-                }
-            })
-    }
-    else if (slug) {
-        Category.findOne({ slug, isDisabled: { $ne: true } }).exec((error, category) => {
-            if (error) return res.status(400).json({ error })
-            if (category) {
-                const categoriesArr = [category]
-                Category.find({ parentId: category._id })
-                    .exec((error, categories) => {
-                        if (error) {
-                            return res.status(400).json({ error: "something went wrong" })
-                        }
-                        if (categories) {
-                            categoriesArr.push(...categories)
-                        }
-                        Product.find({ category: { $in: categoriesArr } })
-                            .populate({ path: "category", select: "_id name categoryImage" })
-                            .limit(100)
-                            .exec((error, products) => {
-                                if (error) return res.status(400).json({ error })
-                                if (products) {
-                                    res.status(200).json({ products: products, title: category.name })
-                                } else {
-                                    res.status(400).json({ error: "something went wrong" })
-                                }
-                            })
-                    })
-            } else {
-                res.status(400).json({ error: "something went wrong" })
-            }
-        })
-    }
-    else {
-        return res.status(400).json({ error: "Params required" })
-    }
-}
-
 exports.getProductById = (req, res) => {
     const { _id } = req.body
     if (_id) {
@@ -182,31 +96,6 @@ exports.updateProduct = (req, res) => {
         })
 
 }
-
-exports.getProductDetailsBySlug = (req, res) => {
-    const { slug } = req.params
-    if (slug) {
-        Product.findOne({ slug, isDisabled: { $ne: true } })
-            .populate({ path: "category", select: "_id name categoryImage" })
-            .populate('reviews')
-            .populate({
-                path: 'reviews', populate: {
-                    path: "user", select: "_id name profilePicture"
-                }
-            })
-            .exec((error, product) => {
-                if (error) return res.status(400).json({ error })
-                if (product) {
-                    res.status(200).json({ product })
-                } else {
-                    res.status(400).json({ error: "something went wrong" })
-                }
-            })
-    } else {
-        res.status(400).json({ error: "Params required" })
-    }
-}
-
 
 exports.deleteProductById = (req, res) => {
     const { productId } = req.body.payload
@@ -245,7 +134,6 @@ exports.getProducts = async (req, res) => {
         res.status(400).json({ error })
     }
 }
-
 exports.searchByProductName = async (req, res) => {
     const { text } = req.body
     const products = await Product.find({ $text: { $search: text }, isDisabled: { $ne: true } })

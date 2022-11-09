@@ -59,37 +59,6 @@ exports.signin = async (req, res) => {
     }
 }
 
-exports.signinWithGoogle = async (req, res) => {
-    const { token } = req.body
-    try {
-        const ticket = await client.verifyIdToken({
-            idToken: token,
-            audience: client_id,
-        })
-        const { email, picture } = ticket.getPayload()
-        const existingUser = await User.findOne({ email , isDisabled: { $ne: true }})
-        if (existingUser) {
-            const { _id, name, email, profilePicture, role } = existingUser
-            const token = await generateJwtToken(_id, email, role)
-            // response token and user info
-            res.status(201).json({ token, user: { _id, name, email, profilePicture, role } })
-        } else {
-            const newUser = {
-                name,
-                email,
-                profilePicture: picture
-            }
-            let user = await User.create(newUser)
-            const { _id, name, email, profilePicture, role } = user
-            const token = await generateJwtToken(_id, email, role)
-            // response token and user info
-            res.status(201).json({ token, user: { _id, name, email, profilePicture, role } })
-        }
-    } catch (error) {
-        res.status(400).json({ error })
-    }
-}
-
 exports.isUserLoggedIn = async (req, res) => {
     try {
         const userObj = await User.findOne({ _id: req.user._id, isDisabled: { $ne: true }})

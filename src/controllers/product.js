@@ -3,8 +3,7 @@ const shortid = require("shortid");
 const slugify = require("slugify");
 
 exports.addProduct = (req, res) => {
-    const { name, price, description, category, discountPercent } = req.body
-    const variants = JSON.parse(req.body.variants)
+    const { name, price, description, category, variants, quantity } = req.body
     let productPictures = []
 
     if (req.files.length > 0) {
@@ -12,15 +11,17 @@ exports.addProduct = (req, res) => {
             return file.path
         })
     }
+    console.log(req.body)
     const product = new Product({
-        name: name,
+        name: name + "màu " + variants,
         price,
+        quantity,
         description,
         productPictures,
         variants,
-        discountPercent,
         category
-    })
+    }
+    )
     product.save((error, product) => {
         if (error) return res.status(400).json({ error })
         if (product) {
@@ -115,24 +116,13 @@ exports.deleteProductById = (req, res) => {
 }
 
 exports.getProducts = async (req, res) => {
-    try {
-        const products = await Product.find({ isDisabled: { $ne: true } })
-            .populate({ path: "category", select: "_id name categoryImage" })
-            .populate({
-                path: 'reviews', populate: {
-                    path: "user", select: "_id name profilePicture"
-                }
-            }).limit(100)
-            .exec()
-
-        if (products) {
-            res.status(200).json({ products })
+    Product.find({},function(err, result) {
+        if (err) {
+            res.status(400).send(err);
         } else {
-            res.status(400).json({ error: "something went wrong" })
+            res.status(200).json(result);
         }
-    } catch (error) {
-        res.status(400).json({ error })
-    }
+    });
 }
 exports.searchByProductName = async (req, res) => {
     const { text } = req.body

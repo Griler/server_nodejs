@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-variantSchema = require('../models/variant').schema;
 
 const productSchema = new mongoose.Schema({
     name: {
@@ -7,20 +6,12 @@ const productSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    slug: {
-        type: String,
-        required: true,
-        unique: true
-    },
     price: {
         type: Number,
         required: true
     },
-    discountPercent: {
+    quantity: {
         type: Number,
-        default: 0,
-        min: 0,
-        max: 100,
         required: true
     },
     description: {
@@ -29,24 +20,27 @@ const productSchema = new mongoose.Schema({
         trim: true
     },
     productPictures: [
-        { type: String }
+        {type: String}
     ],
     reviews: [
         {
-            rating: { type: Number, required: true },
-            comment: { type: String, required: true },
+            rating: {type: Number, required: true},
+            comment: {type: String, required: true},
             user: {
                 type: mongoose.Schema.Types.ObjectId,
                 required: true,
                 ref: 'User',
             },
-            createdAt: { type: Date, default: Date.now }
+            createdAt: {type: Date, default: Date.now}
         },
     ],
-    variants: [variantSchema],
-    category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
+    variants: {
+        type: String,
+        required: true,
+    },
+    category: {type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true},
     isDisabled: false
-}, { timestamps: true });
+}, {timestamps: true});
 
 
 module.exports = mongoose.model('Product', productSchema);

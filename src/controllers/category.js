@@ -2,6 +2,7 @@ const { Category } = require("../models")
 const slugify = require("slugify");
 const shortid = require("shortid");
 const { query } = require("express");
+const {clone} = require("nodemon/lib/utils");
 
 const createCategories = (categories, parentId = null) => {
     const categoryList = [];
@@ -29,7 +30,6 @@ exports.addCategory = (req, res) => {
     const { name, parentId } = req.body;
     const categoryObj = {
         name,
-        slug: `${slugify(name)}-${shortid.generate()}`
     }
 
     if (req.file) {
@@ -38,8 +38,6 @@ exports.addCategory = (req, res) => {
 
     if (parentId) {
         categoryObj.parentId = parentId;
-    }else{
-        categoryObj.parentId = null;
     }
 
     const cate = new Category(categoryObj);
@@ -53,7 +51,6 @@ exports.addCategory = (req, res) => {
     })
 }
 
-
 exports.getCategories = (req, res) => {
     Category.find({ isDisabled: { $ne: true } }).exec((error, categories) => {
         if (error) {
@@ -65,34 +62,43 @@ exports.getCategories = (req, res) => {
     })
 }
 
-
-
 exports.getFlatCategories = (req, res) => {
-    Category.find({}).exec((error, categories) => {
-        if (error) {
-            return res.status(400).json({ error })
+    Category.find({},function(err, result) {
+        if (err) {
+          res.send(err);
         } else {
-            return res.status(200).json({ categories });
-        }
-    })
+          res.json(result);
+        }}); 
 }
+
 exports.getCategoriesParent = (req, res) => {
-    Category.find({ parentId: null } ).exec((error,categories) => {
-        if (error) {
-            return res.status(400).json({ error })
+    Category.find({ parentId: null },function(err, result) {
+        if (err) {
+          res.send(err);
         } else {
-            return res.status(200).json({categories});
-        }
-    })
+          res.json(result);
+        }});  
 }
-exports.getCategoriesChild = (req, res) => {
-    Category.find(({ parentId: { $ne: null } }) ).exec((error,categoriesChild) => {
-        if (error) {
-            return res.status(400).json({ error })
+
+exports.getCategoriesChildWithParentName = (req, res) => {
+    var  MatchNameToId = {
+        'ghe': '636b4c6bf028b4189c025ac0',
+        'sofa': '636b4dfaf028b4189c025ac6',
+        'giuong-ngu':'636b9f6f5475d525b0e83d4b',
+        'ban': '636c9d2c413e1a3c2c36611f',
+        'tu-va-ke': '636c9f80413e1a3c2c36613f',
+        'bep':'636ca126413e1a3c2c366159',
+        'hang-trang-tri':'636ca2db413e1a3c2c366165'
+    }
+    var categoryParent = req.params.categoryParentName;
+    var Id = MatchNameToId[categoryParent]
+    console.log(MatchNameToId[categoryParent]);
+    Category.find({parentId : Id },function(err, result) {
+        if (err) {
+          res.send(err);
         } else {
-            return res.status(200).json({categoriesChild});
-        }
-    })
+          res.json(result);
+        }});  
 }
 
 

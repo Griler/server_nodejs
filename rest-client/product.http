@@ -7,7 +7,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MTU1NWExY
     "price": "",
     "description": "",
     "category": "",
-    "discountPercent": "",
     "variants": "",
     "productPicture": "day la anh"
 }

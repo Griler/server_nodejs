@@ -1,8 +1,11 @@
 const { Category } = require("../models")
 const slugify = require("slugify");
 const shortid = require("shortid");
-const { query } = require("express");
+const { query, json } = require("express");
 const {clone} = require("nodemon/lib/utils");
+const {banner} = require("../models/image");
+const product = require("../models/product");
+const image = require("../models/image");
 
 const createCategories = (categories, parentId = null) => {
     const categoryList = [];
@@ -80,11 +83,19 @@ exports.getCategoriesParent = (req, res) => {
         }});  
 }
 
+exports.getBanner = (req,res)=>{
+    image.find({},function(err, result) {
+    if (err) {
+      res.send(err);
+    } else {
+      res.json(result);
+    }});
+}
 exports.getCategoriesChildWithParentName = (req, res) => {
     var  MatchNameToId = {
         'ghe': '636b4c6bf028b4189c025ac0',
         'sofa': '636b4dfaf028b4189c025ac6',
-        'giuong-ngu':'636b9f6f5475d525b0e83d4b',
+        'giuong':'636b9f6f5475d525b0e83d4b',
         'ban': '636c9d2c413e1a3c2c36611f',
         'tu-va-ke': '636c9f80413e1a3c2c36613f',
         'bep':'636ca126413e1a3c2c366159',
